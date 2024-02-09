@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  go-app:
+    container_name: go-app
+    image: francescoxx/go-app:1.0.0
+    build: .
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_HOST: go_db
+      POSTGRES_PORT: 5432
+    ports:
+      - "8000:8000"
+    depends_on:
+      - go_db
+  go_db:
+    container_name: go_db
+    image: postgres:12
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_HOST: go_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+      image: dpage/pgadmin4:4.18
+      restart: always
+      environment:
+        PGADMIN_DEFAULT_EMAIL: admin@linuxhint.com
+        PGADMIN_DEFAULT_PASSWORD: secret
+        PGADMIN_LISTEN_PORT: 83
+      ports:
+        - "8001:83"
+      volumes:
+        - pgadmin-data:/var/lib/pgadmins
+      links:
+      - "go_db:pgsql-server"
+volumes:  
+  pgdata: {}
+  pgadmin-data:
