@@ -23,6 +23,7 @@ func ConnectToDatabase() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	db.AutoMigrate(&User{})
 	db.AutoMigrate(&Category{})
 	db.AutoMigrate(&Task{})
 	DB = db

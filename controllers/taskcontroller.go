@@ -1,75 +1,73 @@
 package controllers
 
 import (
-	"encoding/json"
-	"fmt"
 	"go-crud-api/models"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/gorilla/mux"
 )
 
-func GetTasks(w http.ResponseWriter, r *http.Request) {
+func GetTasks(c *gin.Context) {
 	var tasks []models.Task
 	models.DB.Preload("Category").Preload("Task").Find(&tasks)
-	json.NewEncoder(w).Encode(tasks)
+	c.JSON(200, tasks)
+	return
 }
 
-func CreateTask(w http.ResponseWriter, r *http.Request) {
+func CreateTask(c *gin.Context) {
 	var task models.Task
 	validate := validator.New()
-	json.NewDecoder(r.Body).Decode(&task)
 	err := validate.Struct(task)
 	if err != nil {
 		errors := err.(validator.ValidationErrors)
-		http.Error(w, fmt.Sprintf("Validation error: %s", errors), http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, errors)
 		return
 	}
+	err = c.ShouldBindJSON(&task)
 	res := models.DB.Create(&task)
 	if res.RowsAffected == 0 {
-		w.WriteHeader(http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, nil)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(task)
+	c.JSON(201, task)
+	return
 }
 
-func GetTaskById(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	taskId := vars["taskId"]
+func GetTaskById(c *gin.Context) {
+	taskId := c.Param("taskId")
 	var task models.Task
 	res := models.DB.Preload("Category").Find(&task, taskId)
 	if res.RowsAffected == 0 {
-		w.WriteHeader(http.StatusNotFound)
+		c.JSON(http.StatusNotFound, nil)
 		return
 	}
-	json.NewEncoder(w).Encode(task)
+	c.JSON(http.StatusOK, &task)
+	return
 }
 
-func DeleteTask(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	taskId := vars["taskId"]
+func DeleteTask(c *gin.Context) {
+	taskId := c.Param("taskId")
 	var task models.Task
 	res := models.DB.Find(&task, taskId)
 	if res.RowsAffected == 0 {
-		w.WriteHeader(http.StatusNotFound)
+		c.JSON(http.StatusNotFound, nil)
 		return
 	}
 	models.DB.Delete(&task, taskId)
-	w.WriteHeader(http.StatusNoContent)
+	c.JSON(http.StatusNoContent, task)
+	return
 }
 
-func UpdateTask(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	taskId := vars["taskId"]
+func UpdateTask(c *gin.Context) {
+	taskId := c.Param("taskId")
 	var task models.Task
 	res := models.DB.First(&task, taskId)
 	if res.RowsAffected == 0 {
-		w.WriteHeader(http.StatusNotFound)
+		c.JSON(http.StatusNotFound, nil)
 		return
 	}
-	json.NewDecoder(r.Body).Decode(&task)
+	c.ShouldBindJSON(&task)
 	models.DB.Save(&task)
-	json.NewEncoder(w).Encode(task)
+	c.JSON(http.StatusOK, &task)
 }

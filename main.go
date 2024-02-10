@@ -2,31 +2,24 @@ package main
 
 import (
 	"go-crud-api/controllers"
+	"go-crud-api/middleware"
 	"go-crud-api/models"
-	"log"
-	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	models.ConnectToDatabase()
-	router := mux.NewRouter()
-	RegisterRoutes(router)
-	log.Fatal(http.ListenAndServe(":8000", jsonContentTypeMiddleware(router)))
-}
-
-func jsonContentTypeMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application-json")
-		next.ServeHTTP(w, r)
-	})
-}
-
-func RegisterRoutes(r *mux.Router) {
-	r.HandleFunc("/tasks", controllers.GetTasks).Methods("GET")
-	r.HandleFunc("/tasks", controllers.CreateTask).Methods("POST")
-	r.HandleFunc("/tasks/{taskId}", controllers.GetTaskById).Methods("GET")
-	r.HandleFunc("/tasks/{taskId}", controllers.DeleteTask).Methods("DELETE")
-	r.HandleFunc("/tasks/{taskId}", controllers.UpdateTask).Methods("PUT")
+	r := gin.Default()
+	api := r.Group("/api/v1")
+	{
+		api.POST("/registration", controllers.Register)
+		api.POST("/auth/token", controllers.Login)
+		api.GET("/tasks", middleware.Auth(), controllers.GetTasks)
+		api.GET("/tasks/:taskId", middleware.Auth(), controllers.GetTaskById)
+		api.PUT("/tasks/:taskId", middleware.Auth(), controllers.UpdateTask)
+		api.DELETE("/tasks:taskId", middleware.Auth(), controllers.DeleteTask)
+		api.POST("/tasks", middleware.Auth(), controllers.CreateTask)
+	}
+	r.Run(":8000")
 }
