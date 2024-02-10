@@ -9,11 +9,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var router *mux.Router
-
 func main() {
 	models.ConnectToDatabase()
-	router = mux.NewRouter()
+	router := mux.NewRouter()
 	RegisterRoutes(router)
 	log.Fatal(http.ListenAndServe(":8000", jsonContentTypeMiddleware(router)))
 }
@@ -30,4 +28,5 @@ func RegisterRoutes(r *mux.Router) {
 	r.HandleFunc("/tasks", controllers.CreateTask).Methods("POST")
 	r.HandleFunc("/tasks/{taskId}", controllers.GetTaskById).Methods("GET")
 	r.HandleFunc("/tasks/{taskId}", controllers.DeleteTask).Methods("DELETE")
+	r.HandleFunc("/tasks/{taskId}", controllers.UpdateTask).Methods("PUT")
 }

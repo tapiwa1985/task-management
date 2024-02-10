@@ -13,4 +13,6 @@ type Task struct {
 	TaskDescription string    `json:"description" validate:"required"`
 	AssignedUser    string    `json:"assigned_user" validate:"required"`
 	Deadline        time.Time `json:"deadline"`
+	CategoryID      uint      `json:"category_id" validate:"required"`
+	Category        Category  `gorm:"foreignKey:category_id"`
 }

@@ -12,7 +12,7 @@ import (
 
 func GetTasks(w http.ResponseWriter, r *http.Request) {
 	var tasks []models.Task
-	models.DB.Find(&tasks)
+	models.DB.Preload("Category").Preload("Task").Find(&tasks)
 	json.NewEncoder(w).Encode(tasks)
 }
 
@@ -26,7 +26,11 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Validation error: %s", errors), http.StatusBadRequest)
 		return
 	}
-	models.DB.Create(&task)
+	res := models.DB.Create(&task)
+	if res.RowsAffected == 0 {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(task)
 }
@@ -35,7 +39,7 @@ func GetTaskById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	taskId := vars["taskId"]
 	var task models.Task
-	res := models.DB.First(&task, taskId)
+	res := models.DB.Preload("Category").Find(&task, taskId)
 	if res.RowsAffected == 0 {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -54,4 +58,18 @@ func DeleteTask(w http.ResponseWriter, r *http.Request) {
 	}
 	models.DB.Delete(&task, taskId)
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func UpdateTask(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	taskId := vars["taskId"]
+	var task models.Task
+	res := models.DB.First(&task, taskId)
+	if res.RowsAffected == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	json.NewDecoder(r.Body).Decode(&task)
+	models.DB.Save(&task)
+	json.NewEncoder(w).Encode(task)
 }
