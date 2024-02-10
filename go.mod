@@ -2,6 +2,8 @@ module go-crud-api
 
 go 1.21.6
 
+require github.com/joho/godotenv v1.5.1
+
 require (
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect

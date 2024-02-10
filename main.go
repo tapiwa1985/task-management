@@ -4,11 +4,18 @@ import (
 	"go-crud-api/controllers"
 	"go-crud-api/middleware"
 	"go-crud-api/models"
+	"log"
+
+	"github.com/joho/godotenv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	models.ConnectToDatabase()
 	r := gin.Default()
 	api := r.Group("/api/v1")

@@ -23,7 +23,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_DB: postgres
       POSTGRES_HOST: go_db
-      JWT_SECRET: G3GQFi9xQl7tOQRayUpiyEt6xqh873dTtE6d8bqppcDvXwg9gS6Ccq0k6d0241gV
     ports:
       - "5432:5432"
     volumes:
